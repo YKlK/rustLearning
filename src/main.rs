@@ -28,7 +28,7 @@ impl Display for Students {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "[Id of the student: {}\nName of the student: {}\nAge of the student: {}\nCourses of the student: {:?}]",
+            "[\nId of the student: {}\nName of the student: {}\nAge of the student: {}\nCourses of the student: {:?}\n]\n",
             self.id, self.name, self.age, self.courses
         )
     }
@@ -156,13 +156,18 @@ impl Students {
     }
 }
 
+// fn show_students(val: VecDeque<Students>) ->Vec<Students>{
+//     let mut name: String;
+//     println!("write nothing if you want all the students, write the name of ");
+//     stdin().read_line(&mut name).unwrap_or_else(|_| {
+//         print!("there was an error getting the text");
+//         0
+//     })
+//     val.iter().map()
+
+// }
+
 fn main() {
     let mut students_vec: VecDeque<Students> = VecDeque::new();
-    let student = Students::add_student();
-    students_vec.push_back(student);
-
-    if let Some(stl) = students_vec.get_mut(0) {
-        Students::update_student(stl);
-    }
-
+    let student = Students::default();
 }
