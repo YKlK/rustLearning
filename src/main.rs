@@ -180,16 +180,24 @@ fn show_students(val: VecDeque<Students>) {
     }
 }
 
-fn remove_student(val: &mut VecDeque<Students>){
-    let mut Aux = String::new();
+fn remove_student(val: &mut VecDeque<Students>) {
+    let mut aux = String::new();
     print!("write the name of the student that you want to erase: ");
-    stdout().flush().unwrap();
-    stdin().read_line(&mut Aux).unwrap_or_else(|_|{
-        print!("there were an error taking the name");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut aux).unwrap_or_else(|_| {
+        println!("there was an error taking the name");
         0
-});
-    for i in val.iter().filter(|x| x.name.to_ascii_lowercase().cmp(&Aux).is_eq()){
-        val.contains(i)
+    });
+
+    // Convertir a minúsculas y quitar posibles espacios extra
+    let aux = aux.trim().to_ascii_lowercase();
+
+    // Buscar el índice del estudiante que se desea eliminar
+    if let Some(pos) = val.iter().position(|x| x.name.to_ascii_lowercase() == aux) {
+        val.remove(pos);
+        println!("Student {} has been removed.", aux);
+    } else {
+        println!("Student with name {} was not found.", aux);
     }
 }
 
