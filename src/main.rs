@@ -3,8 +3,9 @@ use std::default::Default;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::io::{stdin, stdout};
-use std::{collections::VecDeque, io};
 
+use std::{collections::VecDeque, io};
+use std::cmp::Ordering;
 #[derive(Debug)]
 struct Students {
     id: u32,
@@ -17,7 +18,7 @@ impl Default for Students {
     fn default() -> Self {
         Students {
             id: 1,
-            name: String::new(),
+            name: String::from("si"),
             age: 0,
             courses: Vec::new(),
         }
@@ -156,18 +157,45 @@ impl Students {
     }
 }
 
-// fn show_students(val: VecDeque<Students>) ->Vec<Students>{
-//     let mut name: String;
-//     println!("write nothing if you want all the students, write the name of ");
-//     stdin().read_line(&mut name).unwrap_or_else(|_| {
-//         print!("there was an error getting the text");
-//         0
-//     })
-//     val.iter().map()
+fn show_students(val: VecDeque<Students>) {
+    
+    let mut name = String::new(); // Inicializa la variable `name`
+    println!("Write nothing if you want all the students, write the name of the student: ");
+    stdout().flush().unwrap();
+    stdin().read_line(&mut name).unwrap_or_else(|_| {
+        println!("There was an error getting the text");
+        0
+    });
 
-// }
+    name = name.trim().to_string(); 
+
+    if !name.is_empty() {
+        for i in val.iter().filter(|x| x.name.contains(&name)) {
+            print!("{}", i);
+        }
+    } else {
+        for i in val.iter() {
+            print!("{}", i);
+        }
+    }
+}
+
+fn remove_student(val: &mut VecDeque<Students>){
+    let mut Aux = String::new();
+    print!("write the name of the student that you want to erase: ");
+    stdout().flush().unwrap();
+    stdin().read_line(&mut Aux).unwrap_or_else(|_|{
+        print!("there were an error taking the name");
+        0
+});
+    for i in val.iter().filter(|x| x.name.to_ascii_lowercase().cmp(&Aux).is_eq()){
+        val.contains(i)
+    }
+}
 
 fn main() {
     let mut students_vec: VecDeque<Students> = VecDeque::new();
     let student = Students::default();
+    students_vec.push_front(student);
+    show_students(students_vec);
 }
