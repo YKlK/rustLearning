@@ -1,11 +1,41 @@
 use rand::prelude::*;
 use std::default::Default;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::io::Write;
-use std::io::{stdin, stdout};
-
+use std::io::{stdin, stdout, Error, Write};
+use std::fs;
 use std::{collections::VecDeque, io};
-use std::cmp::Ordering;
+use std::convert::From;
+
+#[derive(Debug)]
+enum Errornumber {
+    ErrorNotNumber(String),
+    IOError(Error),
+}
+
+impl Display for Errornumber {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self {
+            Errornumber::IOError(a) => write!(f, "there was an error in the system: {a}"),
+            Errornumber::ErrorNotNumber(a) => write!(f, "you have to give us a number: {a}"),
+        }
+    }
+}
+
+impl std::error::Error for Errornumber {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match *self {
+            Errornumber::IOError(ref err) => Some(err),
+            _ => None,
+        }
+    }
+}
+
+impl From<std::io::Error> for Errornumber {
+    fn from(value: std::io::Error) -> Self {
+        Errornumber::IOError(value)
+    }
+}
+
 #[derive(Debug)]
 struct Students {
     id: u32,
@@ -35,131 +65,60 @@ impl Display for Students {
     }
 }
 
+fn read_input(prompt: &str) -> Result<String, Errornumber> {
+    let mut input = String::new();
+    print!("{}", prompt);
+    stdout().flush().map_err(Errornumber::from)?;
+    stdin().read_line(&mut input).map_err(Errornumber::from)?;
+    Ok(input.trim().to_string())
+}
+
 impl Students {
-    fn add_student() -> Students {
+    fn add_student() -> Result<Self, Errornumber> {
         let mut returned: Students = Default::default();
-        let mut input = String::new();
-        let mut inputcourses: String = String::new();
-        let mut num_of_courses: u8 = 0;
-
-        print!("Name of the student: ");
-        stdout().flush().unwrap();
-        stdin().read_line(&mut returned.name).unwrap_or(0);
-        returned.name = returned.name.trim().to_string();
-
-        print!("Give me the age of the student: ");
-        stdout().flush().unwrap();
-        io::stdin().read_line(&mut input).unwrap_or_else(|err| {
-            println!("Error reading age: {}", err);
-            0
-        });
-        returned.age = input.trim().parse::<u8>().unwrap_or_else(|_| {
-            println!("Invalid age input. Setting age to default (0).");
-            0
-        });
-
-        print!("How many classes does the student have? ");
-        stdout().flush().unwrap();
-        stdin().read_line(&mut inputcourses).unwrap_or_else(|_| {
-            println!("Invalid number of courses input. Setting courses to default (0).");
-            0
-        });
-
-        if let Ok(val) = inputcourses.trim().parse::<u8>() {
-            num_of_courses = val;
-        } else {
-            println!("There was an error parsing the number of courses.");
-        }
-
+        returned.name = read_input("Name of the student: ")?;
+        let age_input = read_input("Give me the age of the student: ")?;
+        returned.age = age_input.parse::<u8>().map_err(|_| Errornumber::ErrorNotNumber(age_input.clone()))?;
+        
+        let courses_input = read_input("How many classes does the student have? ")?;
+        let num_of_courses = courses_input.parse::<u8>().map_err(|_| Errornumber::ErrorNotNumber(courses_input.clone()))?;
+        
         for i in 1..=num_of_courses {
-            let mut course_name = String::new();
-            print!("Enter the name of course {}: ", i);
-            stdout().flush().unwrap();
-            stdin().read_line(&mut course_name).unwrap_or_else(|_| {
-                println!("Error reading course name.");
-                0
-            });
-            returned.courses.push(course_name.trim().to_string());
+            let course_name = read_input(&format!("Enter the name of course {}: ", i))?;
+            returned.courses.push(course_name);
         }
 
         returned.id = rand::thread_rng().gen();
         println!("{}", returned);
-        returned
+        Ok(returned)
     }
 
-    fn update_student(stl: &mut Students) {
-        let mut input = String::new();
-        let mut want_changes = String::new();
-        let mut num_of_courses: u8 = 0;
-
-        stl.name.clear();
-        print!("Type the name of the student: ");
-        stdout().flush().unwrap();
-        stdin().read_line(&mut stl.name).unwrap_or_else(|_| {
-            println!("There was an error taking the prompts");
-            0
-        });
-        stl.name = stl.name.trim().to_string();
-
-        // Update age
-        input.clear();
-        print!("Type the age of the student: ");
-        stdout().flush().unwrap();
-        stdin().read_line(&mut input).unwrap_or_else(|_| {
-            println!("There was an error taking the prompts");
-            0
-        });
-        if let Ok(val) = input.trim().parse::<u8>() {
-            stl.age = val;
-        }
-
-        // Ask if the user wants to change the courses
-        want_changes.clear();
-        print!("Do you want to change the courses? (Y/N): ");
-        stdout().flush().unwrap();
-        stdin().read_line(&mut want_changes).unwrap_or_else(|_| {
-            println!("There was an error reading the confirmation");
-            0
-        });
-
-        match want_changes.chars().next().unwrap_or('\n') {
-            'Y' | 'y' => {
-                input.clear();
-                print!("How many classes does the student have? ");
-                stdout().flush().unwrap();
-                stdin().read_line(&mut input).unwrap_or_else(|_| {
-                    println!("Invalid number of courses input. Setting courses to default (0).");
-                    0
-                });
-
-                if let Ok(val) = input.trim().parse::<u8>() {
-                    num_of_courses = val;
-                } else {
-                    println!("There was an error parsing the number of courses.");
-                }
-
-                stl.courses.clear();
-                for i in 1..=num_of_courses {
-                    let mut course_name = String::new();
-                    print!("Enter the name of course {}: ", i);
-                    stdout().flush().unwrap();
-                    stdin().read_line(&mut course_name).unwrap_or_else(|_| {
-                        println!("Error reading course name.");
-                        0
-                    });
-                    stl.courses.push(course_name.trim().to_string());
-                }
+    fn update_student(stl: &mut Students) -> Result<(), Errornumber> {
+        stl.name = read_input("Type the name of the student: ")?;
+        
+        let age_input = read_input("Type the age of the student: ")?;
+        stl.age = age_input.parse::<u8>().map_err(|_| Errornumber::ErrorNotNumber(age_input.clone()))?;
+        
+        let want_changes = read_input("Do you want to change the courses? (Y/N): ")?;
+        
+        if want_changes.eq_ignore_ascii_case("Y") {
+            let courses_input = read_input("How many classes does the student have? ")?;
+            let num_of_courses = courses_input.parse::<u8>().map_err(|_| Errornumber::ErrorNotNumber(courses_input.clone()))?;
+            
+            stl.courses.clear();
+            for i in 1..=num_of_courses {
+                let course_name = read_input(&format!("Enter the name of course {}: ", i))?;
+                stl.courses.push(course_name);
             }
-            _ => (),
         }
 
         println!("{}", stl);
+        Ok(())
     }
 }
 
 fn show_students(val: VecDeque<Students>) {
-    
-    let mut name = String::new(); // Inicializa la variable `name`
+    let mut name = String::new();
     println!("Write nothing if you want all the students, write the name of the student: ");
     stdout().flush().unwrap();
     stdin().read_line(&mut name).unwrap_or_else(|_| {
@@ -189,10 +148,8 @@ fn remove_student(val: &mut VecDeque<Students>) {
         0
     });
 
-    // Convertir a minúsculas y quitar posibles espacios extra
     let aux = aux.trim().to_ascii_lowercase();
 
-    // Buscar el índice del estudiante que se desea eliminar
     if let Some(pos) = val.iter().position(|x| x.name.to_ascii_lowercase() == aux) {
         val.remove(pos);
         println!("Student {} has been removed.", aux);
@@ -201,9 +158,11 @@ fn remove_student(val: &mut VecDeque<Students>) {
     }
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let mut students_vec: VecDeque<Students> = VecDeque::new();
+
     let student = Students::default();
     students_vec.push_front(student);
     show_students(students_vec);
+    Ok(())
 }
