@@ -4,5 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+calamine = "0.25.0"
 rand = "0.8.5"
+serde = { version = "1.0.203", features = ["derive"] }
+xlsxwriter = "0.6.1"
+
 

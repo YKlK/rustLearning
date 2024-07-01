@@ -1,14 +1,14 @@
 use crate::error_manager::Errornumber;
 use functions::read_input;
 use std::collections::VecDeque;
-use student_CRUD::{remove_student, show_students, Students};
-
+use student_crud::{create_and_save_students, remove_student, show_students, Students};
+mod filefunctions;
 mod error_manager;
 mod functions;
-mod student_CRUD;
+mod student_crud;
 fn main() -> Result<(), Errornumber> {
     let mut students_vec: VecDeque<Students> = VecDeque::new();
-
+    create_and_save_students()?;
     loop {
         println!("Options:");
         println!("1. Add student");
