@@ -1,7 +1,5 @@
 use crate::error_manager::Errornumber;
 use crate::functions::read_input;
-use calamine::{open_workbook, RangeDeserializerBuilder, Reader, Xlsx};
-
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -118,35 +116,5 @@ pub fn show_students(val: &VecDeque<Students>) -> Result<(), Errornumber> {
         }
     }
 
-    Ok(())
-}
-
-pub fn create_and_save_students(students_vec: &mut VecDeque<Students>) -> Result<(), Errornumber> {
-    let nameofdoc = read_input("Name of the document: ")?;
-    let typeofdoc =
-        read_input("Write the type of document\n\nJson: js\nPDF: pdf\nExcel: xlsx\n\n::")?;
-    let path = format!("{}", env!("CARGO_MANIFEST_DIR"));
-    let _create_file =
-        File::create(format!("{}.{}", nameofdoc, typeofdoc)).map_err(Errornumber::from)?;
-
-    match typeofdoc.trim().to_lowercase().as_str() {
-        "xlsx" => {
-            create_excel(&mut students_vec);
-
-            // Lógica para manejar excel
-            println!("XLSX handling not implemented yet.");
-        }
-        "js" => {
-            // Lógica para manejar JSON
-            println!("JSON handling not implemented yet.");
-        }
-        "pdf" => {
-            // Lógica para manejar PDF
-            println!("PDF handling not implemented yet.");
-        }
-        _ => {
-            println!("Unsupported document type.");
-        }
-    }
     Ok(())
 }

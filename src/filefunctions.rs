@@ -1,28 +1,53 @@
-use xlsxwriter::Workbook;
+use std::io::Write;
+use std::{collections::VecDeque, fs::File};
+use std::env;
+use serde::{Deserialize, Serialize};
+use crate::{error_manager::Errornumber, functions::read_input, student_crud::Students};
 
-use crate::error_manager::Errornumber;
+ 
 
+ 
+pub fn create_and_save_students(students_vec: &mut VecDeque<Students>) -> Result<(), Errornumber> {
+    let nameofdoc = read_input("Name of the document: ")?;
+    let typeofdoc =
+        read_input("Write the type of document\n\nJson: json\nPDF: pdf\nExcel: xlsx\n\n::")?;
 
-pub fn create_excel(students_vec: &mut VecDeque<Students>)->Result<() , Errornumber> {
     
-    let workbook = Workbook::new(file_path.to_str().unwrap());
-            let mut sheet = workbook.add_worksheet(Some("Sheet1")).map_err(Errornumber::from)?;
 
-            // Escribir encabezados
-            let headers = vec!["ID", "Name", "Age", "Courses"];
-            for (col, header) in headers.iter().enumerate() {
-                sheet.write_string(0, col as u32, header, None).map_err(Errornumber::from)?;
+    let mut _create_file =
+        File::create(format!("{}.{}", nameofdoc, typeofdoc)).map_err(Errornumber::from)?;
+
+    match typeofdoc.trim().to_lowercase().as_str() {
+        "xlsx" => {
+
+            // Lógica para manejar excel
+            println!("XLSX handling not implemented yet.");
+        }
+        "json" => {
+            let mut serialize:Vec<String>= Vec::new();
+            for i in students_vec.into_iter(){
+                serialize.push(serde_json::to_string(&i).unwrap());
             }
+            _create_file.write_all(b"{\"students\":[")?;
+            for i in serialize{
+                for y in i.as_bytes(){
+                    _create_file.write_all(&[*y])?;
+                }
+                _create_file.write_all(b",")?;
+        }
+        // _create_file.
+        _create_file.write_all(b"]}")?;
 
-            // Escribir datos de estudiantes
-            for (row, student) in students_vec.iter().enumerate() {
-                sheet.write_number((row + 1) as u32, 0, student.id as f64, None).map_err(Errornumber::from)?;
-                sheet.write_string((row + 1) as u32, 1, &student.name, None).map_err(Errornumber::from)?;
-                sheet.write_number((row + 1) as u32, 2, student.age as f64, None).map_err(Errornumber::from)?;
-                sheet.write_string((row + 1) as u32, 3, &student.courses.join(", "), None).map_err(Errornumber::from)?;
-            }
-
-            workbook.close().map_err(Errornumber::from)?;
-            Ok(())
-        }  
-    
+            // Lógica para manejar JSON
+            println!("JSON handling not implemented yet.");
+        }
+        "pdf" => {
+            // Lógica para manejar PDF
+            println!("PDF handling not implemented yet.");
+        }
+        _ => {
+            println!("Unsupported document type.");
+        }
+    }
+    Ok(())
+}

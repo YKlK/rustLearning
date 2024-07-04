@@ -1,21 +1,23 @@
 use crate::error_manager::Errornumber;
+use filefunctions::create_and_save_students;
 use functions::read_input;
 use std::collections::VecDeque;
-use student_crud::{create_and_save_students, remove_student, show_students, Students};
+use student_crud::{ remove_student, show_students, Students};
 mod filefunctions;
 mod error_manager;
 mod functions;
 mod student_crud;
 fn main() -> Result<(), Errornumber> {
     let mut students_vec: VecDeque<Students> = VecDeque::new();
-    create_and_save_students()?;
+
     loop {
         println!("Options:");
         println!("1. Add student");
         println!("2. Show students");
         println!("3. Update student");
         println!("4. Remove student");
-        println!("5. Exit");
+        println!("5. create document and save students");
+        println!("6. Exit");
         let choice = read_input("Choose an option: ")?;
 
         match choice.as_str() {
@@ -45,7 +47,10 @@ fn main() -> Result<(), Errornumber> {
                 }
             }
             "4" => remove_student(&mut students_vec)?,
-            "5" => {
+            "5"=>{
+                create_and_save_students(&mut students_vec)?;
+            },
+            "6" => {
                 println!("Exiting...");
                 break;
             }
@@ -55,3 +60,5 @@ fn main() -> Result<(), Errornumber> {
 
     Ok(())
 }
+
+
