@@ -7,7 +7,6 @@ use std::{
 pub enum Errornumber {
     ErrorNotNumber(String),
     IOError(Error),
-
 }
 
 impl Display for Errornumber {
